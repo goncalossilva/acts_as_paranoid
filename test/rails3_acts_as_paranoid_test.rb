@@ -71,8 +71,8 @@ class ParanoidTest < ActiveSupport::TestCase
     assert_equal 0, ParanoidTime.only_deleted.count
 
     ParanoidTime.delete_all!
-    assert_empty ParanoidTime.all
-    assert_empty ParanoidTime.with_deleted.all    
+    assert_equal [], ParanoidTime.all
+    assert_equal [], ParanoidTime.with_deleted.all    
   end
 
   def test_paranoid_scope
@@ -88,5 +88,25 @@ class ParanoidTest < ActiveSupport::TestCase
     assert_equal 2, ParanoidBoolean.count
     ParanoidBoolean.only_deleted.first.recover
     assert_equal 3, ParanoidBoolean.count
+  end
+  
+  def test_associations_finders
+    paranoic_company = Company.create!
+    
+    assert [], paranoic_company.paranoid_products
+    
+    pp1 = ParanoidProduct.create(:company => paranoic_company)
+    assert_equal [pp1], paranoic_company.paranoid_products
+    
+    pp2 = ParanoidProduct.create(:company => paranoic_company, :deleted_at => Time.now)
+    assert_equal [pp1], paranoic_company.reload.paranoid_products
+    
+    assert_equal [pp2], paranoic_company.paranoid_products.reload.only_deleted
+    
+    pp2 = ParanoidProduct.create(:company_id => (paranoic_company.id + 1), :deleted_at => Time.now)
+    assert_equal [pp2], paranoic_company.paranoid_products.reload.only_deleted
+    # 
+    # assert 1, paranoic_company.paranoid_products.count
+    # assert 2, ParanoidProduct.count
   end
 end

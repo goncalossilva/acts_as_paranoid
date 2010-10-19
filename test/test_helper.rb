@@ -29,6 +29,20 @@ def setup_db
       t.column :created_at, :datetime      
       t.column :updated_at, :datetime
     end
+    
+    create_table :companies do |t|
+      t.column :name, :string
+      t.column :created_at, :datetime      
+      t.column :updated_at, :datetime
+    end
+    
+    create_table :paranoid_products do |t|
+      t.column :name, :string
+      t.column :company_id, :integer
+      t.column :deleted_at, :datetime
+      t.column :created_at, :datetime      
+      t.column :updated_at, :datetime
+    end
   end
 end
 
@@ -47,4 +61,13 @@ class ParanoidBoolean < ActiveRecord::Base
 end
 
 class NotParanoid < ActiveRecord::Base
+end
+
+class Company < ActiveRecord::Base
+  has_many :paranoid_products
+end
+
+class ParanoidProduct < ActiveRecord::Base
+  acts_as_paranoid
+  belongs_to :company
 end
