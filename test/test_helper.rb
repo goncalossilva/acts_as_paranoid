@@ -11,23 +11,33 @@ ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":me
 def setup_db
   ActiveRecord::Schema.define(:version => 1) do
     create_table :paranoid_times do |t|
-      t.column :name, :string
-      t.column :deleted_at, :datetime
-      t.column :created_at, :datetime      
-      t.column :updated_at, :datetime
+      t.string :name
+      t.datetime :deleted_at
     end
 
     create_table :paranoid_booleans do |t|
-      t.column :name, :string
-      t.column :is_deleted, :boolean
-      t.column :created_at, :datetime      
-      t.column :updated_at, :datetime
+      t.string :name
+      t.boolean :is_deleted
     end
 
     create_table :not_paranoids do |t|
-      t.column :name, :string
-      t.column :created_at, :datetime      
-      t.column :updated_at, :datetime
+      t.string :name
+    end
+    
+    create_table :blogs do |t|
+      t.string :name
+      t.datetime :deleted_at, :datetime
+    end
+
+    create_table :companies do |t|
+      t.string :name
+      t.datetime :deleted_at
+    end
+    
+    create_table :products do |t|
+      t.references :company
+      t.string :name
+      t.datetime :deleted_at
     end
   end
 end
@@ -47,4 +57,16 @@ class ParanoidBoolean < ActiveRecord::Base
 end
 
 class NotParanoid < ActiveRecord::Base
+end
+
+class Company < ActiveRecord::Base
+  acts_as_paranoid
+  validates :name, :presence => true
+  has_many :products, :dependent => :destroy
+end
+
+class Product < ActiveRecord::Base
+  acts_as_paranoid
+  belongs_to :company
+  validates_presence_of :company, :name
 end

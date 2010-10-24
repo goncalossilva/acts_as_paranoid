@@ -89,4 +89,26 @@ class ParanoidTest < ActiveSupport::TestCase
     ParanoidBoolean.only_deleted.first.recover
     assert_equal 3, ParanoidBoolean.count
   end
+  
+  def test_real_removal_with_assiciations
+    # This test shows that the current implementation (0.0.2) doesn't handle
+    # association deletion correctly (when hard deleting via parent-object)
+    company = Company.create! :name => "Company1"
+    company.products.create! :name => "Product1" 
+
+    assert_equal 1, Company.count
+    assert_equal 1, Product.count
+    
+    Company.first.destroy!
+    assert_equal 0, Company.count
+    assert_equal 0, Product.count
+    assert_equal 1, Company.with_deleted.count
+    assert_equal 1, Product.with_deleted.count
+    
+    Company.with_deleted.first.destroy!
+    assert_equal 0, Company.count
+    assert_equal 0, Product.count
+    assert_equal 0, Company.with_deleted.count
+    assert_equal 0, Product.with_deleted.count
+  end
 end
