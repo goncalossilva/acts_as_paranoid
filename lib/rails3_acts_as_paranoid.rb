@@ -16,9 +16,11 @@ module ActsAsParanoid
     
     class_attribute :paranoid_configuration, :paranoid_column_reference
     
-    self.paranoid_configuration = { :column => "deleted_at", :column_type => "time", :recover_dependent_associations => true, :dependent_recovery_window => 5.minutes }.merge(options)
+	# default configuration set to 'exclusion_cd' field with type 'string'
+    self.paranoid_configuration = { :column => "exclusion_cd", :column_type => "string", :recover_dependent_associations => false, :dependent_recovery_window => 5.minutes }.merge(options)
 
-    raise ArgumentError, "'time' or 'boolean' expected for :column_type option, got #{paranoid_configuration[:column_type]}" unless ['time', 'boolean'].include? paranoid_configuration[:column_type]
+	# extended to accept sting variables
+    raise ArgumentError, "'time' or 'boolean' or 'string' expected for :column_type option, got #{paranoid_configuration[:column_type]}" unless ['time', 'boolean', 'string'].include? paranoid_configuration[:column_type]
 
     self.paranoid_column_reference = "#{self.table_name}.#{paranoid_configuration[:column]}"
     
@@ -29,16 +31,13 @@ module ActsAsParanoid
       alias_method :destroy!, :destroy
     end
     
-    default_scope where("#{paranoid_column_reference} IS ?", nil) # Magic!
+	# setting default scope value as 'IN'
+    default_scope where("#{paranoid_column_reference} =?", 'IN') # Magic!
     
     scope :paranoid_deleted_around_time, lambda {|value, window|
-      if self.class.respond_to?(:paranoid?) && self.class.paranoid?
-        if self.class.paranoid_column_type == 'time' && ![true, false].include?(value)
-          self.where("#{self.class.paranoid_column} > ? AND #{self.class.paranoid_column} < ?", (value - window), (value + window))
-        else
-          self.only_deleted
-        end
-      end
+        self.where("#{self.class.paranoid_column} > ? AND #{self.class.paranoid_column} < ?", (value - window), (value + window))
+	
+      
     }
     
     include InstanceMethods
@@ -47,12 +46,15 @@ module ActsAsParanoid
 
   module ClassMethods
     
+public
+
     def with_deleted
       self.unscoped.reload
     end
 
     def only_deleted
-      self.unscoped.where("#{paranoid_column_reference} IS NOT ?", nil)
+		# unscoped records  identified 
+      self.unscoped.where("#{paranoid_column_reference} != ?", 'IN')
     end
 
     def delete_all!(conditions = nil)
@@ -79,6 +81,8 @@ module ActsAsParanoid
       case paranoid_configuration[:column_type]
         when "time" then Time.now
         when "boolean" then true
+		# adding string type exclusion value	
+		when "string" then :OUT
       end
     end
   end
@@ -102,16 +106,10 @@ module ActsAsParanoid
     def destroy
       with_transaction_returning_status do
         run_callbacks :destroy do
-          if paranoid_value.nil?
             self.class.delete_all(:id => self.id)
-          else
-            self.class.delete_all!(:id => self.id)
-          end
-          self.paranoid_value = self.class.delete_now_value
         end
       end
     end
-    
     def recover(options={})
       options = {
                   :recursive => self.class.paranoid_configuration[:recover_dependent_associations],
@@ -121,8 +119,9 @@ module ActsAsParanoid
       self.class.transaction do
         recover_dependent_associations(options[:recovery_window], options) if options[:recursive]
 
-        self.update_attributes(self.class.paranoid_column.to_sym => nil)
+        self.update_attributes(self.class.paranoid_column.to_sym => 'IN')
       end
+    
     end
 
     def recover_dependent_associations(window, options)
