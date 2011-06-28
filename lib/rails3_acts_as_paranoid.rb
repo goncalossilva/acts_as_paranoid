@@ -34,9 +34,9 @@ module ActsAsParanoid
 		# setting default scope value as per the type
 		#default_scope where("#{paranoid_column_reference} =?", 'IN') # Magic!
 		case paranoid_configuration[:column_type]
-			when "time" then default_scope where("#{paranoid_column_reference} IS ?", nil)
-			when "boolean" then default_scope where("#{paranoid_column_reference} IS ?", nil)
-			when "string" then default_scope where("#{paranoid_column_reference} = ?", 'IN')	
+		when "time" then default_scope where("#{paranoid_column_reference} IS ?", nil)
+		when "boolean" then default_scope where("#{paranoid_column_reference} IS ?", nil)
+		when "string" then default_scope where("#{paranoid_column_reference} = ?", 'IN')	
 		end
 		
 		scope :paranoid_deleted_around_time, lambda {|value, window|
@@ -63,9 +63,9 @@ module ActsAsParanoid
 			
 			#setting unscoped records on basis of type
 			case paranoid_configuration[:column_type]
-				when "string" then self.unscoped.where("#{paranoid_column_reference} != ?", 'IN')
-				when "time" then self.unscoped.where("#{paranoid_column_reference} IS NOT ?", nil)
-				when "boolean" then self.unscoped.where("#{paranoid_column_reference} IS NOT ?", nil)
+			when "string" then self.unscoped.where("#{paranoid_column_reference} != ?", 'IN')
+			when "time" then self.unscoped.where("#{paranoid_column_reference} IS NOT ?", nil)
+			when "boolean" then self.unscoped.where("#{paranoid_column_reference} IS NOT ?", nil)
 			end
 		end
 		
@@ -123,6 +123,16 @@ module ActsAsParanoid
 				end
 			end
 		end
+		
+		def delete
+			with_transaction_returning_status do
+				run_callbacks :destroy do
+					self.class.delete_all(:id => self.id)
+					freeze
+				end
+			end
+		end
+		
 		def recover(options={})
 			options = {
 				:recursive => self.class.paranoid_configuration[:recover_dependent_associations],
@@ -133,10 +143,10 @@ module ActsAsParanoid
 				recover_dependent_associations(options[:recovery_window], options) if options[:recursive]
 				
 				case paranoid_configuration[:column_type]
-					when "time" then self.update_attributes(self.class.paranoid_column.to_sym => nil )
-					when "boolean" then self.update_attributes(self.class.paranoid_column.to_sym => nil)
+				when "time" then self.update_attributes(self.class.paranoid_column.to_sym => nil )
+				when "boolean" then self.update_attributes(self.class.paranoid_column.to_sym => nil)
 					# adding string type exclusion value	
-					when "string" then self.update_attributes(self.class.paranoid_column.to_sym => 'IN')
+				when "string" then self.update_attributes(self.class.paranoid_column.to_sym => 'IN')
 				end
 				#self.update_attributes(self.class.paranoid_column.to_sym => 'IN')
 			end
