@@ -1,42 +1,72 @@
 require 'test_helper'
 
-class ParanoidTest < Test::Unit::TestCase
-  fixtures :Blog
+#class ParanoidTest < Test::Unit::TestCase
+  class ParanoidTest < ActionController::TestCase
+  #fixtures :Posts
 
-  def test_should_recognize_with_exclusion_cd
-    assert_equal [2, 4], Blog.find(:all, :conditions => ["exclusion_cd = 'IN'"]).collect { |w| w.id }
-    assert_equal [1, 3], Blog.find(:all, :conditions => ["exclusion_cd = 'OUT'"]).collect { |w| w.id }
+
+  def setup
+
+    Post.delete_all!
+    ["paranoid", "really paranoid", "extremely paranoid"].each do |name|
+      Post.create! :name => name, :exclusion_cd => 'IN'
+    end
   end
 
-  def test_should_recognize_with_only_deleted
-    assert_equal [1, 3], Blog.only_deleted.collect { |w| w.id }
+  def test_exclusion_cd
+    assert_equal 3, Post.all.count
   end
 
-  def test_is_deleted
-    assert_equal false, Blog.is_deleted?(2)
-    assert_equal true, Blog.is_deleted?(3)
+  def test_only_deleted
+    Post.all.first.destroy
+    assert_equal 1, Post.only_deleted.count
   end
 
-  def test_should_count_with_deleted
-    assert_equal 2, Blog.count
-    assert_equal 4, Blog.count_with_deleted
-    assert_equal 2, Blog.count_only_deleted
+  def test_with_deleted
+    assert_equal 3, Post.count
+    assert_equal 3, Post.with_deleted.count
   end
 
-  def test_should_set_deleted_at
-    assert_equal 1, Blog.count
-    Blog(:blog_1).destroy
-    assert_equal 0, Blog.count
-    assert_equal 2, Blog.calculate_with_deleted(:count, :all)
+  def test_should_delete
+      assert_equal 3, Post.count
+      Post.all.first.delete
+      assert_equal 2, Post.count
+      assert_equal 3, Post.with_deleted.count
   end
 
   def test_should_destroy
-    assert_equal 2, Blog.count
-    Blog(:blog_1).destroy!
-    assert_equal 1, Blog.count
-    assert_equal 3, Blog.count_only_deleted
-    assert_equal 4, Blog.cont_with_deleted
+      assert_equal 3, Post.count
+      Post.all.first.destroy!
+      assert_equal 2, Post.count
+      assert_equal 2, Post.with_deleted.count
   end
+
+  def test_should_recover
+      assert_equal 3, Post.count
+      Post.all.first.delete
+      assert_equal 2, Post.count
+      Post.only_deleted.first.recover
+      assert_equal 3, Post.count
+  end
+
+  def test_should_delete_all
+      assert_equal 3, Post.count
+      Post.delete_all
+      assert_equal 0, Post.count
+      assert_equal 3, Post.with_deleted.count
+      Post.only_deleted.first.recover
+      assert_equal 1, Post.count
+    end
+
+  def test_should_destroy_all
+      assert_equal 3, Post.count
+      Post.delete_all!
+      assert_equal 0, Post.with_deleted.count
+      assert_equal 0, Post.count
+
+  end
+
+
 end
 
 class Array
