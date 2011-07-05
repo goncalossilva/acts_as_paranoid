@@ -1,7 +1,6 @@
 require 'test_helper'
 
-#class ParanoidTest < Test::Unit::TestCase
-  class ParanoidTest < ActionController::TestCase
+class ParanoidTest < Test::Unit::TestCase
   #fixtures :Posts
 
 
