@@ -1,5 +1,6 @@
 require 'active_support/core_ext/array/wrap'
 
+# comment
 module ParanoidValidations
   class UniquenessWithoutDeletedValidator < ActiveRecord::Validations::UniquenessValidator
     def validate_each(record, attribute, value)
