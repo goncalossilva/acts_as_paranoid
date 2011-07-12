@@ -48,7 +48,7 @@ module ActsAsParanoid
   module ClassMethods
     
     def with_deleted
-      self.unscoped.reload
+      self.unscoped
     end
 
     def only_deleted
