@@ -108,11 +108,11 @@ module ActsAsParanoid
             self.class.delete_all!(:id => self.id)
           end
           self.paranoid_value = self.class.delete_now_value
-          freeze
+          self
         end
       end
     end
-    
+
     def recover(options={})
       options = {
                   :recursive => self.class.paranoid_configuration[:recover_dependent_associations],
