@@ -2,7 +2,7 @@ source "http://rubygems.org"
 
 gem "rails3_acts_as_paranoid", :path => File.expand_path("..", __FILE__)
 
-# Development dependencies 
+# Development dependencies
 gem "rake"
-gem "activesupport"
+gem "activesupport", "> 3.0.6"
 gem "sqlite3-ruby"
