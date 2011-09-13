@@ -17,7 +17,7 @@ module ActsAsParanoid
     class_attribute :paranoid_configuration, :paranoid_column_reference
     
     self.paranoid_configuration = { :column => "deleted_at", :column_type => "time", :recover_dependent_associations => true, :dependent_recovery_window => 2.minutes }
-    self.paranoid_configuration.merge!({ :deleted_value => "deleted" }) if options[:column_type] == "string"
+    self.paranoid_configuration.merge!({ :deleted_value => "deleted"}) if options[:column_type] == "string"
     self.paranoid_configuration.merge!(options) # user options
 
     raise ArgumentError, "'time', 'boolean' or 'string' expected for :column_type option, got #{paranoid_configuration[:column_type]}" unless ['time', 'boolean', 'string'].include? paranoid_configuration[:column_type]
@@ -32,7 +32,11 @@ module ActsAsParanoid
     end
     
     # Magic!
-    default_scope where("#{paranoid_column_reference} IS ?", nil)
+    if options[:not_deleted_value]
+      default_scope where("#{paranoid_column_reference} IS ? || #{paranoid_column_reference} = ?", nil, options[:not_deleted_value])
+    else
+      default_scope where("#{paranoid_column_reference} IS ?", nil)
+    end
     
     scope :paranoid_deleted_around_time, lambda {|value, window|
       if self.class.respond_to?(:paranoid?) && self.class.paranoid?
