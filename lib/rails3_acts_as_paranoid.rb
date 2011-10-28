@@ -16,7 +16,7 @@ module ActsAsParanoid
     
     class_attribute :paranoid_configuration, :paranoid_column_reference
     
-    self.paranoid_configuration = { :column => "deleted_at", :column_type => "time", :recover_dependent_associations => true, :dependent_recovery_window => 2.minutes }
+    self.paranoid_configuration = { :column => "deleted_at", :column_type => "time", :recover_dependent_associations => true, :dependent_recovery_window => 2.minutes, :not_deleted_value => options[:not_deleted_value] }
     self.paranoid_configuration.merge!({ :deleted_value => "deleted" }) if options[:column_type] == "string"
     self.paranoid_configuration.merge!(options) # user options
 
@@ -36,7 +36,11 @@ module ActsAsParanoid
     end
 
     # Magic!
-    default_scope where("#{paranoid_column_reference} IS ?", nil)
+    if paranoid_configuration[:not_deleted_value]
+      default_scope where("#{paranoid_column_reference} IS ? || #{paranoid_column_reference} = ?", nil, paranoid_configuration[:not_deleted_value])
+    else
+      default_scope where("#{paranoid_column_reference} IS ?", nil)
+    end
     
     scope :paranoid_deleted_around_time, lambda {|value, window|
       if self.class.respond_to?(:paranoid?) && self.class.paranoid?
@@ -70,7 +74,11 @@ module ActsAsParanoid
     end
 
     def only_deleted
-      self.unscoped.where("#{paranoid_column_reference} IS NOT ?", nil)
+      if paranoid_configuration[:deleted_value]
+        self.unscoped.where("#{paranoid_column_reference} IS NOT ? AND #{paranoid_column_reference} = ?", nil, paranoid_configuration[:deleted_value])
+      else
+        self.unscoped.where("#{paranoid_column_reference} IS NOT ?", nil)
+      end
     end
 
     def delete_all!(conditions = nil)
@@ -83,6 +91,10 @@ module ActsAsParanoid
 
     def paranoid_column
       paranoid_configuration[:column].to_sym
+    end
+    
+    def not_deleted_value
+      paranoid_configuration[:not_deleted_value]
     end
 
     def paranoid_column_type
@@ -120,7 +132,7 @@ module ActsAsParanoid
     end
 
     def destroy
-      if paranoid_value.nil?
+      if paranoid_value.nil? || paranoid_value.eql?(self.class.not_deleted_value)
         with_transaction_returning_status do
           run_callbacks :destroy do
             self.class.delete_all(self.class.primary_key.to_sym => self.id)
@@ -142,8 +154,12 @@ module ActsAsParanoid
       self.class.transaction do
         run_callbacks :recover do
           recover_dependent_associations(options[:recovery_window], options) if options[:recursive]
-
-          self.update_attributes(self.class.paranoid_column.to_sym => nil)
+          if self.class.not_deleted_value
+            not_deleted_value = self.class.not_deleted_value
+          else
+            not_deleted_value = nil
+          end
+          self.update_attributes(self.class.paranoid_column.to_sym => not_deleted_value)
         end
       end
     end
@@ -182,7 +198,11 @@ module ActsAsParanoid
     end
 
     def deleted?
-      !paranoid_value.nil?
+      if self.class.not_deleted_value
+        !paranoid_value.eql?(self.class.not_deleted_value)
+      else
+        !paranoid_value.nil? 
+      end
     end
     alias_method :destroyed?, :deleted?
     
