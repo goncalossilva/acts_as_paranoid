@@ -4,7 +4,7 @@ class ParanoidBaseTest < ActiveSupport::TestCase
   def assert_empty(collection)
     assert(collection.respond_to?(:empty?) && collection.empty?)
   end
-  
+
   def setup
     setup_db
 
@@ -263,6 +263,20 @@ class AssociationsTest < ParanoidBaseTest
     assert_equal 0, ParanoidDeleteCompany.with_deleted.count
     assert_equal 0, ParanoidProduct.with_deleted.count
   end
+
+  def test_paranoid_belongs_to
+    paranoid_time_object = ParanoidTime.first
+    has_many_object = paranoid_time_object.paranoid_has_many_dependants.create(:name => "has_many")
+
+    assert has_many_object.paranoid_time
+    assert has_many_object.paranoid_time_with_deleted
+
+    paranoid_time_object.destroy
+
+    assert_nil has_many_object.paranoid_time(true)
+    assert has_many_object.paranoid_time_with_deleted(true)
+  end
+
 end
 
 class InheritanceTest < ParanoidBaseTest

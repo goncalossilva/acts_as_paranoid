@@ -201,3 +201,21 @@ ActiveRecord::Base.send :extend, ActsAsParanoid
 
 # Push the recover callback onto the activerecord callback list
 ActiveRecord::Callbacks::CALLBACKS.push(:before_recover, :after_recover)
+
+# This adds the :with_deleted option to belongs_to
+module ActiveRecord::Associations::ClassMethods
+  def belongs_to_with_deleted(target, options = {})
+    with_deleted = options.delete(:with_deleted)
+    result = belongs_to_without_deleted(target, options)
+    if with_deleted
+      class_eval <<-EOF
+        def #{target}_with_unscoped(*args)
+          #{options[:class_name] || target.to_s.classify}.unscoped { #{target}_without_unscoped(*args) }
+        end
+        alias_method_chain :#{target}, :unscoped
+      EOF
+    end
+    result
+  end
+  alias_method_chain :belongs_to, :deleted
+end
