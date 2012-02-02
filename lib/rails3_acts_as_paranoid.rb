@@ -32,7 +32,7 @@ module ActsAsParanoid
     end
     
     ActiveRecord::Reflection::AssociationReflection.class_eval do
-      alias_method :foreign_key, :primary_key_name unless respond_to?(:foreign_key)
+      alias_method :foreign_key, :primary_key_name if respond_to?(:primary_key_name) && !respond_to?(:foreign_key)
     end
 
     # Magic!
