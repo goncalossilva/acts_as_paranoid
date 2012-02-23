@@ -263,6 +263,12 @@ class AssociationsTest < ParanoidBaseTest
     assert_equal 0, ParanoidDeleteCompany.with_deleted.count
     assert_equal 0, ParanoidProduct.with_deleted.count
   end
+
+  def test_association_with_deleted
+    assoc = ParanoidHasOneDependent.create! :name => 'Associated paranoid instance'
+    referring_instance = ParanoidBelongsToWithDeleted, :name => 'Referring instance', :paranoid_has_one_dependent_id => assoc.id
+    debugger; puts 'foo'
+  end
 end
 
 class InheritanceTest < ParanoidBaseTest
