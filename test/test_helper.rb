@@ -73,7 +73,7 @@ def setup_db
 
       t.timestamps
     end
-    
+
     create_table :paranoid_with_callbacks do |t|
       t.string    :name
       t.datetime  :deleted_at
@@ -108,6 +108,12 @@ def setup_db
       t.string :type
       t.references :has_many_inherited_super_paranoidz
       t.datetime :deleted_at
+      
+      t.timestamps
+    end
+
+    create_table :referrentially_integral_associates do |t|
+      t.integer :super_paranoid_id
       
       t.timestamps
     end
@@ -240,6 +246,10 @@ end
 class SuperParanoid < ActiveRecord::Base
   acts_as_paranoid
   belongs_to :has_many_inherited_super_paranoidz
+end
+
+class ReferrentiallyIntegralAssociate < ActiveRecord::Base
+  belongs_to :super_paranoid, :with_deleted => true
 end
 
 class HasManyInheritedSuperParanoidz < ActiveRecord::Base

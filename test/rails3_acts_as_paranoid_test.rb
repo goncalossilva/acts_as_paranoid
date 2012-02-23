@@ -265,9 +265,8 @@ class AssociationsTest < ParanoidBaseTest
   end
 
   def test_association_with_deleted
-    assoc = ParanoidHasOneDependent.create! :name => 'Associated paranoid instance'
-    referring_instance = ParanoidBelongsToWithDeleted, :name => 'Referring instance', :paranoid_has_one_dependent_id => assoc.id
-    debugger; puts 'foo'
+    assoc = SuperParanoid.create!
+#    referring_instance = ReferrentiallyIntegralAssociate.create!, {:name => 'Referring instance', :paranoid_boolean_id => assoc.id}
   end
 end
 
