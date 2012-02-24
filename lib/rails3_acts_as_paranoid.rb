@@ -1,5 +1,7 @@
 require 'active_record'
-require 'validations/uniqueness_without_deleted'
+
+require File.join(File.dirname(__FILE__), 'validations', 'uniqueness_without_deleted')
+require File.join(File.dirname(__FILE__), 'core_ext', 'active_record', 'associations')
 
 module ActsAsParanoid
   
