@@ -17,7 +17,6 @@ module ActiveRecord
         (options.keys - [:select, :include, :readonly, :with_deleted]).each do |key|
           options.delete key
         end
-        puts options.inspect
         options[:conditions] = conditions
 
         if( @owner[@reflection.primary_key_name] )
