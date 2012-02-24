@@ -4,7 +4,7 @@ module ActiveRecord
       @@valid_keys_for_belongs_to_association << :with_deleted
     end
 
-    class BelongsToAssociation < AssociationProxy 
+    class BelongsToAssociation 
       def find_target
         find_method = if @reflection.options[:primary_key]
                         "find_by_#{@reflection.options[:primary_key]}"
