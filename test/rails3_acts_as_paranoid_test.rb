@@ -266,7 +266,10 @@ class AssociationsTest < ParanoidBaseTest
 
   def test_association_with_deleted
     assoc = SuperParanoid.create!
-#    referring_instance = ReferrentiallyIntegralAssociate.create!, {:name => 'Referring instance', :paranoid_boolean_id => assoc.id}
+    referring_instance = ReferrentiallyIntegralAssociate.create!(:super_paranoid_id => assoc.id)
+
+    assoc.destroy
+    assert_equal(assoc, referring_instance.super_paranoid)
   end
 end
 
