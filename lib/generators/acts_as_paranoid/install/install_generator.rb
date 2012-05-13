@@ -8,7 +8,7 @@ module ActsAsParanoid
       argument  :paranoid_model,  :type => :string, :desc => "Model to make paranoid"
       
       class_option :column,       :type => :string, :default => 'deleted_at', :desc => "Column that stores the model's deleted status"
-      class_option :column_type,  :type => :string, :default => 'time',       :desc => "Column type must be either time, boolean, or string"
+      class_option :column_type,  :type => :string, :default => 'time',       :desc => "Column type must be either time, boolean, or string", :aliases => "--column_type"
       
       source_root File.expand_path("../templates", __FILE__)
       
