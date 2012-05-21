@@ -1,4 +1,5 @@
 # ActsAsParanoid
+[![Build Status](https://secure.travis-ci.org/pericles/rails3_acts_as_paranoid.png?branch=master)](http://travis-ci.org/pericles/rails3_acts_as_paranoid)
 
 A simple plugin which hides records instead of deleting them, being able to recover them.
 
