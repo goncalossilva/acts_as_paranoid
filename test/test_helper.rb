@@ -355,6 +355,8 @@ class ParanoidBaseTest < ActiveSupport::TestCase
     end
 
     ParanoidString.create! :name => "strings can be paranoid"
+    ParanoidString.create! :name => "strings can be populated and not match deleted_value and in scope", :deleted => 'not dead yet'
+
     NotParanoid.create! :name => "no paranoid goals"
     ParanoidWithCallback.create! :name => "paranoid with callbacks"
 
