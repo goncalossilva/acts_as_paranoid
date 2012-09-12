@@ -57,6 +57,17 @@ module ActsAsParanoid
         end
       end
 
+      def ensure_unique_constraint_on(*args)
+        fields = args
+        method_name = :"find_by_#{fields.join('_and_')}"
+
+        before_save do |record|
+          values = fields.map { |f| record[f] }
+          old_record = record.class.with_deleted.send(method_name, *values)
+          old_record.destroy! if old_record
+        end
+      end
+
     protected
 
       def without_paranoid_default_scope

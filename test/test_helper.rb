@@ -166,6 +166,15 @@ def setup_db
 
       t.timestamps
     end
+
+    create_table :paranoid_with_unique_constraints do |t|
+      t.string   :unique_field
+      t.string   :arbitrary_field
+      t.datetime :deleted_at
+
+      t.timestamps
+    end
+    add_index :paranoid_with_unique_constraints, :unique_field, :unique => true
   end
 end
 
@@ -408,4 +417,10 @@ end
 class ParanoidHuman < ActiveRecord::Base
   acts_as_paranoid
   default_scope where('gender IS ?', 'male')
+end
+
+class ParanoidWithUniqueConstraint < ActiveRecord::Base
+  acts_as_paranoid
+
+  ensure_unique_constraint_on :unique_field
 end
