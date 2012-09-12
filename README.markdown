@@ -138,6 +138,30 @@ p2.save
 p1.recover #=> fails validation!
 ```
 
+Sometimes you have unique constraints in your database. They can be easily broken when you have record that was marked as deleted by ActsAsParanoid and you are creating new one with same values of unique fields. You can handle this situation by deleting old record.
+
+```ruby
+class Paranoiac < ActiveRecord::Base
+  acts_as_paranoid
+  ensure_unique_constraint_on :name  # 'name' is unique key
+end
+
+p1 = Paranoiac.create(:name => 'foo')
+p1.destroy
+
+p2 = Paranoiac.build(:name => 'foo')
+p2.save #=> true
+```
+
+You can provide several field names if you have multiple-column constraint.
+
+```ruby
+class Paranoiac < ActiveRecord::Base
+  acts_as_paranoid
+  ensure_unique_constraint_on :name, :code
+end
+```
+
 ### Status
 You can check the status of your paranoid objects with the `deleted?` helper
 
