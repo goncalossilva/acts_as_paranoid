@@ -293,4 +293,15 @@ class ParanoidTest < ParanoidBaseTest
     
     assert_paranoid_deletion(model)
   end
+
+  def test_ensure_unique_constraint_on
+    model = ParanoidWithUniqueConstraint.create(:unique_field => 'imoneandonly')
+    model.destroy
+
+    another = ParanoidWithUniqueConstraint.create(:unique_field => 'imoneandonly', :arbitrary_field => 'another')
+    assert another.persisted?
+
+    another = ParanoidWithUniqueConstraint.find_by_unique_field('imoneandonly')
+    assert_equal 'another', another.arbitrary_field
+  end
 end
