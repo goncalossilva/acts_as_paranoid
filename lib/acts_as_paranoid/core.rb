@@ -63,7 +63,7 @@ module ActsAsParanoid
 
         before_save do |record|
           values = fields.map { |f| record[f] }
-          old_record = record.class.with_deleted.send(method_name, *values)
+          old_record = record.class.only_deleted.send(method_name, *values)
           old_record.destroy! if old_record
         end
       end
