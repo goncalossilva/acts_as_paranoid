@@ -39,11 +39,9 @@ module ActsAsParanoid
 
       def paranoid_default_scope_sql
         if string_type_with_deleted_value?
-          self.scoped.table[paranoid_column].eq(nil).
-            or(self.scoped.table[paranoid_column].not_eq(paranoid_configuration[:deleted_value])).
-            to_sql
+          "(\"#{paranoid_column}\" IS NULL OR \"#{paranoid_column}\" != '#{paranoid_configuration[:deleted_value]}')"
         else
-          self.scoped.table[paranoid_column].eq(nil).to_sql
+          "#{paranoid_column} IS NULL"
         end
       end
 
