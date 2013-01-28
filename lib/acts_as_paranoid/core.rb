@@ -23,7 +23,9 @@ module ActsAsParanoid
 
       def only_deleted
         if string_type_with_deleted_value?
-          without_paranoid_default_scope.where("#{paranoid_column_reference} IS ?", paranoid_configuration[:deleted_value])
+          without_paranoid_default_scope.where("#{paranoid_column_reference} = ?", paranoid_configuration[:deleted_value])
+        elsif paranoid_configuration[:column_type] == "boolean"
+          without_paranoid_default_scope.where("#{paranoid_column_reference} = ?", delete_now_value)
         else
           without_paranoid_default_scope.where("#{paranoid_column_reference} IS NOT ?", nil)
         end
@@ -42,6 +44,8 @@ module ActsAsParanoid
           self.scoped.table[paranoid_column].eq(nil).
             or(self.scoped.table[paranoid_column].not_eq(paranoid_configuration[:deleted_value])).
             to_sql
+        elsif boolean_type_with_undeleted_value?
+          self.scoped.table[paranoid_column].eq(paranoid_configuration[:undeleted_value]).or(self.scoped.table[paranoid_column].eq(nil)).to_sql
         else
           self.scoped.table[paranoid_column].eq(nil).to_sql
         end
@@ -49,6 +53,10 @@ module ActsAsParanoid
 
       def string_type_with_deleted_value?
         paranoid_column_type == :string && !paranoid_configuration[:deleted_value].nil?
+      end
+
+      def boolean_type_with_undeleted_value?
+        paranoid_column_type == :boolean && !paranoid_configuration[:undeleted_value].nil?
       end
 
       def paranoid_column
@@ -94,7 +102,7 @@ module ActsAsParanoid
         run_callbacks :destroy do
           destroy_dependent_associations!
           # Handle composite keys, otherwise we would just use `self.class.primary_key.to_sym => self.id`.
-          self.class.delete_all!(Hash[[Array(self.class.primary_key), Array(self.id)].transpose])
+          self.class.delete_all!(Hash[[Array(self.class.primary_key), Array(self.id)].transpose]) if persisted?
           self.paranoid_value = self.class.delete_now_value
           freeze
         end
@@ -127,6 +135,7 @@ module ActsAsParanoid
           recover_dependent_associations(options[:recovery_window], options) if options[:recursive]
 
           self.paranoid_value = nil
+          self.paranoid_value = paranoid_configuration[:undeleted_value] if self.class.boolean_type_with_undeleted_value?
           self.save
         end
       end
@@ -169,7 +178,7 @@ module ActsAsParanoid
     end
 
     def deleted?
-      !(paranoid_value.nil? ||
+      !(paranoid_value.nil? || (self.class.boolean_type_with_undeleted_value? && paranoid_value != paranoid_configuration[:undeleted_value]) ||
         (self.class.string_type_with_deleted_value? && paranoid_value != self.class.delete_now_value))
     end
 
