@@ -35,7 +35,7 @@ module ActsAsParanoid
     include ActsAsParanoid::Core
     
     # Magic!
-    default_scope { where(paranoid_default_scope_sql) }
+    default_scope :conditions => { :deleted_at => nil }
 
     # The paranoid column should not be mass-assignable
     attr_protected paranoid_configuration[:column]
