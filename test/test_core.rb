@@ -11,6 +11,11 @@ class ParanoidTest < ParanoidBaseTest
     assert ParanoidTime.paranoid?
   end
 
+  def test_attr_protected_column
+    pt = ParanoidTime.new(:deleted_at => Time.now)
+    assert_nil pt.deleted_at
+  end
+
   def test_scope_inclusion_with_time_column_type
     assert ParanoidTime.respond_to?(:deleted_inside_time_window)
     assert ParanoidTime.respond_to?(:deleted_before_time)
@@ -61,6 +66,20 @@ class ParanoidTest < ParanoidBaseTest
     ParanoidTime.delete_all!
     assert_empty ParanoidTime.all
     assert_empty ParanoidTime.with_deleted.all
+  end
+
+  def test_non_persisted_destroy
+    pt = ParanoidTime.new
+    assert_nil pt.paranoid_value
+    pt.destroy
+    assert_not_nil pt.paranoid_value
+  end
+
+  def test_non_persisted_destroy!
+    pt = ParanoidTime.new
+    assert_nil pt.paranoid_value
+    pt.destroy!
+    assert_not_nil pt.paranoid_value
   end
 
   def test_recovery
