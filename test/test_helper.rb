@@ -31,6 +31,16 @@ def setup_db
       t.timestamps
     end
 
+    create_table :paranoid_boolean_with_delete_falses do |t|
+      t.string    :name
+      t.boolean   :is_deleted
+      t.integer   :paranoid_time_id
+
+      t.timestamps
+    end
+
+
+
     create_table :paranoid_strings do |t|
       t.string    :name
       t.string    :deleted
@@ -198,6 +208,10 @@ class ParanoidBoolean < ActiveRecord::Base
   has_one :paranoid_has_one_dependant, :dependent => :destroy
 end
 
+class ParanoidBooleanWithDeleteFalse < ActiveRecord::Base
+  acts_as_paranoid :column_type => "boolean", :column => "is_deleted"
+end
+
 class ParanoidString < ActiveRecord::Base
   acts_as_paranoid :column_type => "string", :column => "deleted", :deleted_value => "dead"
 end
@@ -237,31 +251,31 @@ end
 
 class ParanoidWithCallback < ActiveRecord::Base
   acts_as_paranoid
-  
+
   attr_accessor :called_before_destroy, :called_after_destroy, :called_after_commit_on_destroy
   attr_accessor :called_before_recover, :called_after_recover
-  
+
   before_destroy :call_me_before_destroy
   after_destroy :call_me_after_destroy
-  
+
   after_commit :call_me_after_commit_on_destroy, :on => :destroy
 
   before_recover :call_me_before_recover
   after_recover :call_me_after_recover
-  
+
   def initialize(*attrs)
     @called_before_destroy = @called_after_destroy = @called_after_commit_on_destroy = false
     super(*attrs)
   end
-  
+
   def call_me_before_destroy
     @called_before_destroy = true
   end
-  
+
   def call_me_after_destroy
     @called_after_destroy = true
   end
-  
+
   def call_me_after_commit_on_destroy
     @called_after_commit_on_destroy = true
   end
@@ -369,17 +383,17 @@ class ParanoidBaseTest < ActiveSupport::TestCase
   def teardown
     teardown_db
   end
-  
+
   def assert_empty(collection)
     assert(collection.respond_to?(:empty?) && collection.empty?)
   end
-  
+
   def assert_paranoid_deletion(model)
     row = find_row(model)
     assert_not_nil row, "#{model.class} entirely deleted"
     assert_not_nil row["deleted_at"], "Deleted at not set"
   end
-  
+
   def assert_non_paranoid_deletion(model)
     row = find_row(model)
     assert_nil row, "#{model.class} still exists"

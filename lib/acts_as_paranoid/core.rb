@@ -22,11 +22,8 @@ module ActsAsParanoid
       end
 
       def only_deleted
-        if string_type_with_deleted_value?
-          without_paranoid_default_scope.where("#{paranoid_column_reference} IS ?", paranoid_configuration[:deleted_value])
-        else
-          without_paranoid_default_scope.where("#{paranoid_column_reference} IS NOT ?", nil)
-        end
+        _is_not = string_type_with_deleted_value? ? "" : " NOT "
+        without_paranoid_default_scope.where("#{paranoid_column_reference} IS #{_is_not} ?", paranoid_configuration[:deleted_value])
       end
 
       def delete_all!(conditions = nil)
@@ -38,12 +35,19 @@ module ActsAsParanoid
       end
 
       def paranoid_default_scope_sql
+        # lazy load self.columns
+        @@set_paranoid_configuration_deleted_value ||= {}
+        @@set_paranoid_configuration_deleted_value[self.table_name.to_sym] ||= begin
+          if (paranoid_configuration[:column_type] == "boolean") && (self.columns.detect {|column| column.name == self.paranoid_configuration[:column] }.default === false)
+            self.paranoid_configuration.merge!({:deleted_value => false})
+          end
+          true
+        end
+
         if string_type_with_deleted_value?
-          self.scoped.table[paranoid_column].eq(nil).
-            or(self.scoped.table[paranoid_column].not_eq(paranoid_configuration[:deleted_value])).
-            to_sql
+          self.scoped.table[paranoid_column].eq(nil).or(self.scoped.table[paranoid_column].not_eq(paranoid_configuration[:deleted_value])).to_sql
         else
-          self.scoped.table[paranoid_column].eq(nil).to_sql
+          self.scoped.table[paranoid_column].eq(paranoid_configuration[:deleted_value]).to_sql
         end
       end
 
@@ -94,7 +98,7 @@ module ActsAsParanoid
         run_callbacks :destroy do
           destroy_dependent_associations!
           # Handle composite keys, otherwise we would just use `self.class.primary_key.to_sym => self.id`.
-          self.class.delete_all!(Hash[[Array(self.class.primary_key), Array(self.id)].transpose])
+          self.class.delete_all!(Hash[[Array(self.class.primary_key), Array(self.id)].transpose]) if persisted?
           self.paranoid_value = self.class.delete_now_value
           freeze
         end
@@ -106,7 +110,7 @@ module ActsAsParanoid
         with_transaction_returning_status do
           run_callbacks :destroy do
             # Handle composite keys, otherwise we would just use `self.class.primary_key.to_sym => self.id`.
-            self.class.delete_all(Hash[[Array(self.class.primary_key), Array(self.id)].transpose])
+            self.class.delete_all(Hash[[Array(self.class.primary_key), Array(self.id)].transpose]) if persisted?
             self.paranoid_value = self.class.delete_now_value
             self
           end
@@ -180,5 +184,6 @@ module ActsAsParanoid
     def paranoid_value=(value)
       self.send("#{self.class.paranoid_column}=", value)
     end
+
   end
 end
