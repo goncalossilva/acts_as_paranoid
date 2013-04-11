@@ -35,15 +35,6 @@ module ActsAsParanoid
       end
 
       def paranoid_default_scope_sql
-        # lazy load self.columns
-        @@set_paranoid_configuration_deleted_value ||= {}
-        @@set_paranoid_configuration_deleted_value[self.table_name.to_sym] ||= begin
-          if (paranoid_configuration[:column_type] == "boolean") && (self.columns.detect {|column| column.name == self.paranoid_configuration[:column] }.default === false)
-            self.paranoid_configuration.merge!({:deleted_value => false})
-          end
-          true
-        end
-
         if string_type_with_deleted_value?
           self.scoped.table[paranoid_column].eq(nil).or(self.scoped.table[paranoid_column].not_eq(paranoid_configuration[:deleted_value])).to_sql
         else
@@ -178,6 +169,7 @@ module ActsAsParanoid
     end
 
     alias_method :destroyed?, :deleted?
+
 
     private
 

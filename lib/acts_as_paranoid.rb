@@ -35,7 +35,13 @@ module ActsAsParanoid
     include ActsAsParanoid::Core
 
     # Magic!
-    default_scope { where(paranoid_default_scope_sql) }
+    default_scope do
+      # lazy load self.columns
+      if (self.paranoid_configuration[:column_type] == "boolean") && (self.columns.detect {|column| column.name == self.paranoid_configuration[:column] }.default === false)
+        self.paranoid_configuration.merge!({:deleted_value => false})
+      end
+      where(paranoid_default_scope_sql)
+    end
 
     # The paranoid column should not be mass-assignable
     attr_protected paranoid_configuration[:column]
@@ -48,7 +54,9 @@ module ActsAsParanoid
       scope :deleted_after_time, lambda  { |time| where("#{paranoid_column} > ?", time) }
       scope :deleted_before_time, lambda { |time| where("#{paranoid_column} < ?", time) }
     end
+
   end
+
 end
 
 # Extend ActiveRecord's functionality
