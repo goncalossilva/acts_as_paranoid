@@ -352,4 +352,10 @@ class ParanoidTest < ParanoidBaseTest
     2.times { ps.destroy }
     assert_equal 0, ParanoidString.with_deleted.where(:id => ps).count
   end
+
+  def test_string_type_destroyed_twice_but_never_deleted
+    ps = ParanoidStringNeverDeleted.create!(:deleted => 'not dead')
+    2.times { ps.destroy }
+    assert_equal 1, ParanoidStringNeverDeleted.with_deleted.where(:id => ps).count
+  end
 end

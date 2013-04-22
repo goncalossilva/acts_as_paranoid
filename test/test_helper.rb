@@ -36,6 +36,11 @@ def setup_db
       t.string    :deleted
     end
 
+    create_table :paranoid_string_never_deleteds do |t|
+      t.string    :name
+      t.string    :deleted
+    end
+
     create_table :not_paranoids do |t|
       t.string    :name
       t.integer   :paranoid_time_id
@@ -200,6 +205,10 @@ end
 
 class ParanoidString < ActiveRecord::Base
   acts_as_paranoid :column_type => "string", :column => "deleted", :deleted_value => "dead"
+end
+
+class ParanoidStringNeverDeleted < ActiveRecord::Base
+  acts_as_paranoid :column_type => "string", :column => "deleted", :deleted_value => "dead", :never_delete => true
 end
 
 class NotParanoid < ActiveRecord::Base
