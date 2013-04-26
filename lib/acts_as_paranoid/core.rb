@@ -43,7 +43,11 @@ module ActsAsParanoid
       end
 
       def string_type_with_deleted_value?
-        paranoid_column_type == :string && !paranoid_configuration[:deleted_value].nil?
+        (paranoid_column_type == :string) && !paranoid_configuration[:deleted_value].nil?
+      end
+
+      def column_type_with_deleted_value?
+        [:string, :boolean].include?(paranoid_column_type) && !paranoid_configuration[:deleted_value].nil?
       end
 
       def paranoid_column
@@ -164,8 +168,13 @@ module ActsAsParanoid
     end
 
     def deleted?
-      !(paranoid_value.nil? ||
-        (self.class.string_type_with_deleted_value? && paranoid_value != self.class.delete_now_value))
+      return false if paranoid_value.nil?
+
+      if self.class.column_type_with_deleted_value?
+        paranoid_value == self.class.delete_now_value
+      else
+        return true
+      end
     end
 
     alias_method :destroyed?, :deleted?
