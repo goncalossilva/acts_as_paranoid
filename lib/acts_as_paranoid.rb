@@ -26,7 +26,7 @@ module ActsAsParanoid
     self.paranoid_configuration.merge!({ :deleted_value => "deleted" }) if options[:column_type] == "string"
     self.paranoid_configuration.merge!(options) # user options
 
-    raise ArgumentError, "'time', 'boolean' or 'string' expected for :column_type option, got #{paranoid_configuration[:column_type]}" unless ['time', 'boolean', 'string'].include? paranoid_configuration[:column_type]
+    raise ArgumentError, "'time', 'integer', 'boolean' or 'string' expected for :column_type option, got #{paranoid_configuration[:column_type]}" unless ['time', 'integer', 'boolean', 'string'].include? paranoid_configuration[:column_type]
 
     self.paranoid_column_reference = "#{self.table_name}.#{paranoid_configuration[:column]}"
     
