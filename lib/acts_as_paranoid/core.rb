@@ -73,7 +73,12 @@ module ActsAsParanoid
 
       def without_paranoid_default_scope
         scope = self.scoped.with_default_scope
-        scope.where_values.delete(paranoid_default_scope_sql)
+        scope.where_values.each do |w|
+          if (w.is_a?(Arel::Nodes::Equality) && w.left.name == :deleted_at && w.right == nil) || (w.is_a?(String) && w == paranoid_default_scope_sql)
+            scope.where_values.delete w
+            break
+          end
+        end
 
         scope
       end
