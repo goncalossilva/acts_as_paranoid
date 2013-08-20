@@ -54,15 +54,14 @@ time = Time.now
 Paranoiac.deleted_after_time(time)
 Paranoiac.deleted_before_time(time)
 
+# Or roll it all up and get a nice window:
+Paranoiac.deleted_inside_time_window(time, 2.minutes)
+```
 If you specify `:no_default_scope` option
 
 - `:no_default_scope	=> true`
 
 queries will not be scoped by default. You can use `:no_deleted` scope if you want to retrive not deleted records.
-
-# Or roll it all up and get a nice window:
-Paranoiac.deleted_inside_time_window(time, 2.minutes)
-```
 
 ### Real deletion
 
