@@ -35,6 +35,8 @@ The values shown are the defaults. While *column* can be anything (as long as it
 
 If your column type is a `string`, you can also specify which value to use when marking an object as deleted by passing `:deleted_value` (default is "deleted"). Any records with a non-matching value in this column will be treated normally (ie: not deleted).
 
+
+
 ### Filtering
 
 If a record is deleted by ActsAsParanoid, it won't be retrieved when accessing the database. So, `Paranoiac.all` will **not** include the deleted_records. if you want to access them, you have 2 choices:
@@ -51,6 +53,12 @@ time = Time.now
 
 Paranoiac.deleted_after_time(time)
 Paranoiac.deleted_before_time(time)
+
+If you specify `:no_default_scope` option
+
+- `:no_default_scope	=> true`
+
+queries will not be scoped by default. You can use `:no_deleted` scope if you want to retrive not deleted records.
 
 # Or roll it all up and get a nice window:
 Paranoiac.deleted_inside_time_window(time, 2.minutes)
