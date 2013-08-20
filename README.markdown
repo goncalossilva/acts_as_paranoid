@@ -35,8 +35,6 @@ The values shown are the defaults. While *column* can be anything (as long as it
 
 If your column type is a `string`, you can also specify which value to use when marking an object as deleted by passing `:deleted_value` (default is "deleted"). Any records with a non-matching value in this column will be treated normally (ie: not deleted).
 
-
-
 ### Filtering
 
 If a record is deleted by ActsAsParanoid, it won't be retrieved when accessing the database. So, `Paranoiac.all` will **not** include the deleted_records. if you want to access them, you have 2 choices:
