@@ -387,16 +387,16 @@ class ParanoidTest < ParanoidBaseTest
 
   def test_update_timestamp_after_soft_destroy
     old_updated_at = Time.now - 1.day
-    pt = ParanoidTime.create!(:updated_at => old_updated_at)
+    pt = ParanoidWithTouch.create!(:updated_at => old_updated_at)
     pt.destroy
     assert pt.updated_at  > old_updated_at, "updated_at should change"
   end
 
   def test_update_timestamp_after_hard_destroy
     old_updated_at = Time.now - 1.day
-    pt = ParanoidTime.create!(:updated_at => old_updated_at)
+    pt = ParanoidWithTouch.create!(:updated_at => old_updated_at)
     pt.destroy!
     assert pt.updated_at  > old_updated_at, "updated_at should change"
-    assert_equal 0, ParanoidTime.with_deleted.where(:id => pt.id).count
+    assert_equal 0, ParanoidWithTouch.with_deleted.where(:id => pt.id).count
   end
 end

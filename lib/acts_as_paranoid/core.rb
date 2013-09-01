@@ -96,7 +96,7 @@ module ActsAsParanoid
           # Handle composite keys, otherwise we would just use `self.class.primary_key.to_sym => self.id`.
           self.class.delete_all!(Hash[[Array(self.class.primary_key), Array(self.id)].transpose]) if persisted?
           self.paranoid_value = self.class.delete_now_value
-          self.touch
+          self.touch if self.class.paranoid_configuration[:touch]
           freeze
         end
       end
@@ -109,7 +109,7 @@ module ActsAsParanoid
             # Handle composite keys, otherwise we would just use `self.class.primary_key.to_sym => self.id`.
             self.class.delete_all(Hash[[Array(self.class.primary_key), Array(self.id)].transpose]) if persisted?
             self.paranoid_value = self.class.delete_now_value
-            self.touch
+            self.touch if self.class.paranoid_configuration[:touch]
             self
           end
         end
