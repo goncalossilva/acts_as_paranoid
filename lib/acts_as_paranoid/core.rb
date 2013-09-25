@@ -34,7 +34,7 @@ module ActsAsParanoid
       end
 
       def delete_all(conditions = nil)
-        update_all ["#{paranoid_configuration[:column]} = ?", delete_now_value], conditions
+        where(conditions).update_all ["#{paranoid_configuration[:column]} = ?", delete_now_value]
       end
 
       def paranoid_default_scope_sql
