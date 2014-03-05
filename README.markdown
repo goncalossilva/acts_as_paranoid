@@ -213,6 +213,7 @@ Watch out for these caveats:
 -   You cannot use scopes named `deleted_inside_time_window`, `deleted_before_time`, `deleted_after_time` **if** your paranoid column's type is `time`
 -   You cannot name association `*_with_deleted`
 -   `unscoped` will return all records, deleted or not
+-   Assignment of `self.table_name` in a model must come before `acts_as_paranoid` or you will get SQL errors.
 
 # Support
 
