@@ -126,12 +126,14 @@ module ActsAsParanoid
         run_callbacks :recover do
           recover_dependent_associations(options[:recovery_window], options) if options[:recursive]
 
+          recover_counter_cache
+
           self.paranoid_value = nil
           self.save
         end
       end
     end
-    
+
     def recover_dependent_associations(window, options)
       self.class.dependent_associations.each do |reflection|
         next unless (klass = get_reflection_class(reflection)).paranoid?
@@ -176,12 +178,18 @@ module ActsAsParanoid
     alias_method :destroyed?, :deleted?
 
     private
-    
+
     def get_reflection_class(reflection)
       if reflection.macro == :belongs_to && reflection.options.include?(:polymorphic)
         self.send(reflection.foreign_type).constantize
       else
         reflection.klass
+      end
+    end
+
+    def recover_counter_cache
+      self.class.reflect_on_all_associations.select{ |reflection| reflection.options[:counter_cache] && reflection.macro == :belongs_to }.each do |reflection|
+        reflection.klass.with_deleted.increment_counter(reflection.counter_cache_column, send(reflection.foreign_key))
       end
     end
 
