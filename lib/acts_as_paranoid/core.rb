@@ -189,7 +189,9 @@ module ActsAsParanoid
 
     def recover_counter_cache
       self.class.reflect_on_all_associations.select{ |reflection| reflection.options[:counter_cache] && reflection.macro == :belongs_to }.each do |reflection|
-        get_reflection_class(reflection).with_deleted.increment_counter(reflection.counter_cache_column, send(reflection.foreign_key))
+        klass = get_reflection_class(reflection)
+        scope = klass.paranoid? ? klass.with_deleted : klass
+        scope.increment_counter(reflection.counter_cache_column, send(reflection.foreign_key))
       end
     end
 
