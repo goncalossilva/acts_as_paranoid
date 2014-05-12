@@ -22,7 +22,7 @@ module ActsAsParanoid
     
     class_attribute :paranoid_configuration, :paranoid_column_reference
     
-    self.paranoid_configuration = { :column => "deleted_at", :column_type => "time", :recover_dependent_associations => true, :dependent_recovery_window => 2.minutes }
+    self.paranoid_configuration = { :column => "deleted_at", :column_type => "time", :recover_dependent_associations => true, :dependent_recovery_window => 2.minutes, :no_default_scope => false }
     self.paranoid_configuration.merge!({ :deleted_value => "deleted" }) if options[:column_type] == "string"
     self.paranoid_configuration.merge!(options) # user options
 
@@ -35,7 +35,11 @@ module ActsAsParanoid
     include ActsAsParanoid::Core
     
     # Magic!
-    default_scope { where(paranoid_default_scope_sql) }
+    if paranoid_configuration[:no_default_scope]
+      scope :no_deleted, where(paranoid_default_scope_sql)
+    else
+      default_scope { where(paranoid_default_scope_sql) }
+    end
 
     if paranoid_configuration[:column_type] == 'time'
       scope :deleted_inside_time_window, lambda {|time, window|
