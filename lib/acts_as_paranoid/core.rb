@@ -96,6 +96,7 @@ module ActsAsParanoid
           # Handle composite keys, otherwise we would just use `self.class.primary_key.to_sym => self.id`.
           self.class.delete_all!(Hash[[Array(self.class.primary_key), Array(self.id)].transpose]) if persisted?
           self.paranoid_value = self.class.delete_now_value
+          self.touch if self.class.paranoid_configuration[:touch]
           freeze
         end
       end
@@ -108,6 +109,7 @@ module ActsAsParanoid
             # Handle composite keys, otherwise we would just use `self.class.primary_key.to_sym => self.id`.
             self.class.delete_all(Hash[[Array(self.class.primary_key), Array(self.id)].transpose]) if persisted?
             self.paranoid_value = self.class.delete_now_value
+            self.touch if self.class.paranoid_configuration[:touch]
             self
           end
         end
@@ -131,7 +133,7 @@ module ActsAsParanoid
         end
       end
     end
-    
+
     def recover_dependent_associations(window, options)
       self.class.dependent_associations.each do |reflection|
         next unless (klass = get_reflection_class(reflection)).paranoid?
@@ -176,7 +178,7 @@ module ActsAsParanoid
     alias_method :destroyed?, :deleted?
 
     private
-    
+
     def get_reflection_class(reflection)
       if reflection.macro == :belongs_to && reflection.options.include?(:polymorphic)
         self.send(reflection.foreign_type).constantize
