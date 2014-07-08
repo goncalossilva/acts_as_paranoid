@@ -174,6 +174,25 @@ class ParanoidTest < ParanoidBaseTest
     assert_equal 0, HasOneNotParanoid.count
   end
 
+  def test_multi_dependency_recursive_recovery
+    super_parent = ParanoidManyManySuperParent.create!
+    parent_left = ParanoidManyManyParentLeft.create!(paranoid_many_many_super_parent: super_parent)
+    parent_right = ParanoidManyManyParentRight.create!(paranoid_many_many_super_parent: super_parent)
+    ParanoidManyManyChild.create!(
+      paranoid_many_many_parent_left: parent_left,
+      paranoid_many_many_parent_right: parent_right)
+
+    super_parent.destroy
+
+    super_parent.reload
+    super_parent.recover
+
+    assert_equal 1, ParanoidManyManySuperParent.count
+    assert_equal 1, super_parent.paranoid_many_many_parent_left.count
+    assert_equal 1, super_parent.paranoid_many_many_parent_right.count
+    assert_equal 1, ParanoidManyManyChild.count
+  end
+
   def test_recursive_recovery_dependant_window
     setup_recursive_tests
 
@@ -196,6 +215,17 @@ class ParanoidTest < ParanoidBaseTest
     assert_equal 3, ParanoidHasOneDependant.count
     assert_equal 1, NotParanoid.count
     assert_equal 0, HasOneNotParanoid.count
+  end
+
+  def test_recursive_recovery_for_belongs_to_polymorphic_when_nil
+    section_1 = ParanoidSection.create()
+
+    section_1.destroy
+    
+    section_1.reload
+    section_1.recover
+    
+    assert_equal nil, section_1.deleted_at
   end
   
   def test_recursive_recovery_for_belongs_to_polymorphic

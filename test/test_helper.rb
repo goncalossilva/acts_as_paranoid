@@ -119,14 +119,24 @@ def setup_db
       
       t.timestamps
     end
+
+    create_table :paranoid_many_many_super_parents do |t|
+      t.string :name
+      t.datetime :deleted_at
+      t.timestamps
+    end
     
     create_table :paranoid_many_many_parent_lefts do |t|
       t.string :name
+      t.integer :paranoid_many_many_super_parent_id
+      t.datetime :deleted_at
       t.timestamps
     end
 
     create_table :paranoid_many_many_parent_rights do |t|
       t.string :name
+      t.integer :paranoid_many_many_super_parent_id
+      t.datetime :deleted_at
       t.timestamps
     end
     
@@ -339,13 +349,23 @@ class ParanoidObserver < ActiveRecord::Observer
 end
 
 
+class ParanoidManyManySuperParent < ActiveRecord::Base
+  acts_as_paranoid
+  has_many :paranoid_many_many_parent_left, dependent: :destroy
+  has_many :paranoid_many_many_parent_right, dependent: :destroy
+end
+
 class ParanoidManyManyParentLeft < ActiveRecord::Base
-  has_many :paranoid_many_many_children
+  acts_as_paranoid
+  belongs_to :paranoid_many_many_super_parent
+  has_many :paranoid_many_many_children, dependent: :destroy
   has_many :paranoid_many_many_parent_rights, :through => :paranoid_many_many_children
 end
 
 class ParanoidManyManyParentRight < ActiveRecord::Base
-  has_many :paranoid_many_many_children
+  acts_as_paranoid
+  belongs_to :paranoid_many_many_super_parent
+  has_many :paranoid_many_many_children, dependent: :destroy
   has_many :paranoid_many_many_parent_lefts, :through => :paranoid_many_many_children
 end
 
@@ -353,6 +373,9 @@ class ParanoidManyManyChild < ActiveRecord::Base
   acts_as_paranoid
   belongs_to :paranoid_many_many_parent_left
   belongs_to :paranoid_many_many_parent_right
+
+  validates_presence_of :paranoid_many_many_parent_left
+  validates_presence_of :paranoid_many_many_parent_right
 end
 
 class ParanoidWithScopedValidation < ActiveRecord::Base
