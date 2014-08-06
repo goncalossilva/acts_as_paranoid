@@ -169,8 +169,12 @@ module ActsAsParanoid
         scope = scope.merge(klass.deleted_inside_time_window(paranoid_original_value, window))
       end
 
-      scope.each do |object|
-        object.recover(options)
+      unless reflection.options[:dependent] == :delete_all
+        scope.each do |object|
+          object.recover(options)
+        end
+      else 
+        scope.update_all(self.class.paranoid_column => nil)
       end
     end
 
