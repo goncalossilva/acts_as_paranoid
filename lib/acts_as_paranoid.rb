@@ -22,7 +22,7 @@ module ActsAsParanoid
     
     class_attribute :paranoid_configuration, :paranoid_column_reference
     
-    self.paranoid_configuration = { :column => "deleted_at", :column_type => "time", :recover_dependent_associations => true, :dependent_recovery_window => 2.minutes }
+    self.paranoid_configuration = { :column => "deleted_at", :column_type => "time", :recover_dependent_associations => true, :dependent_recovery_window => 2.minutes, :dependent_destroy_paranoid_only => false }
     self.paranoid_configuration.merge!({ :deleted_value => "deleted" }) if options[:column_type] == "string"
     self.paranoid_configuration.merge!(options) # user options
 
