@@ -3,11 +3,11 @@ source "http://rubygems.org"
 gem "activerecord", "~>3.2"
 
 # Development dependencies
-gem "rake"
+gem "rake", "10.1.1"
 gem "activesupport", "~>3.2"
 
 platforms :ruby do
-  gem "sqlite3"
+  gem "sqlite3", "1.3.9"
 end
 
 platforms :jruby do
