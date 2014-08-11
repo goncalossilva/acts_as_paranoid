@@ -39,11 +39,9 @@ module ActsAsParanoid
 
       def paranoid_default_scope_sql
         if string_type_with_deleted_value?
-          self.scoped.table[paranoid_column].eq(nil).
-            or(self.scoped.table[paranoid_column].not_eq(paranoid_configuration[:deleted_value])).
-            to_sql
+          "(\"#{paranoid_column}\" IS NULL OR \"#{paranoid_column}\" != '#{paranoid_configuration[:deleted_value]}')"
         else
-          self.scoped.table[paranoid_column].eq(nil).to_sql
+          "#{paranoid_column} IS NULL"
         end
       end
 
@@ -75,8 +73,15 @@ module ActsAsParanoid
 
       def without_paranoid_default_scope
         scope = self.scoped.with_default_scope
-        scope.where_values.delete(paranoid_default_scope_sql)
+        index = scope.where_values.index do |w|
+          if w.is_a? Arel::Nodes::Equality
+            w.right == nil && w.left != nil && (w.left.name == :deleted_at || w.left.name == 'deleted_at')
+          elsif w.is_a? String
+            w == paranoid_default_scope_sql
+          end
+        end
 
+        scope.where_values.delete_at(index) if index
         scope
       end
     end
