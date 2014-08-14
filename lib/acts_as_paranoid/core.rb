@@ -111,7 +111,7 @@ module ActsAsParanoid
             self
           end
         end
-      else
+      elsif !paranoid_configuration[:never_delete]
         destroy!
       end
     end
