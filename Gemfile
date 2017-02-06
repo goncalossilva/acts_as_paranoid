@@ -17,4 +17,5 @@ end
 group :test do
   gem "minitest"
   gem "autotest-growl"
+  # gem 'pry-debugger'
 end

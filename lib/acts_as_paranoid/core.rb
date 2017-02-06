@@ -22,11 +22,8 @@ module ActsAsParanoid
       end
 
       def only_deleted
-        if string_type_with_deleted_value?
-          without_paranoid_default_scope.where("#{paranoid_column_reference} IS ?", paranoid_configuration[:deleted_value])
-        else
-          without_paranoid_default_scope.where("#{paranoid_column_reference} IS NOT ?", nil)
-        end
+        _is_not = string_type_with_deleted_value? ? "" : " NOT "
+        without_paranoid_default_scope.where("#{paranoid_column_reference} IS #{_is_not} ?", paranoid_configuration[:deleted_value])
       end
 
       def delete_all!(conditions = nil)
@@ -39,16 +36,18 @@ module ActsAsParanoid
 
       def paranoid_default_scope_sql
         if string_type_with_deleted_value?
-          self.scoped.table[paranoid_column].eq(nil).
-            or(self.scoped.table[paranoid_column].not_eq(paranoid_configuration[:deleted_value])).
-            to_sql
+          self.scoped.table[paranoid_column].eq(nil).or(self.scoped.table[paranoid_column].not_eq(paranoid_configuration[:deleted_value])).to_sql
         else
-          self.scoped.table[paranoid_column].eq(nil).to_sql
+          self.scoped.table[paranoid_column].eq(paranoid_configuration[:deleted_value]).to_sql
         end
       end
 
       def string_type_with_deleted_value?
-        paranoid_column_type == :string && !paranoid_configuration[:deleted_value].nil?
+        (paranoid_column_type == :string) && !paranoid_configuration[:deleted_value].nil?
+      end
+
+      def column_type_with_deleted_value?
+        [:string, :boolean].include?(paranoid_column_type) && !paranoid_configuration[:deleted_value].nil?
       end
 
       def paranoid_column
@@ -169,11 +168,17 @@ module ActsAsParanoid
     end
 
     def deleted?
-      !(paranoid_value.nil? ||
-        (self.class.string_type_with_deleted_value? && paranoid_value != self.class.delete_now_value))
+      return false if paranoid_value.nil?
+
+      if self.class.column_type_with_deleted_value?
+        paranoid_value == self.class.delete_now_value
+      else
+        return true
+      end
     end
 
     alias_method :destroyed?, :deleted?
+
 
     private
     
@@ -188,5 +193,6 @@ module ActsAsParanoid
     def paranoid_value=(value)
       self.send("#{self.class.paranoid_column}=", value)
     end
+
   end
 end
