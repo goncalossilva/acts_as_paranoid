@@ -105,6 +105,7 @@ Once you retrieve data using `with_deleted` scope you can check deletion status 
 ### Associations
 Associations are also supported. From the simplest behaviors you'd expect to more nifty things like the ones mentioned previously or the usage of the `:with_deleted` option with `belongs_to`
 
+```
 class ParanoiacParent < ActiveRecord::Base
 	has_many :children, :class_name => "ParanoiacChild"
 end
@@ -119,7 +120,8 @@ child = parent.children.create
 parent.destroy
 
 child.parent #=> nil
-child.parent_with_deleted #=> ParanoiacParent (it works!)
+child.parent_with_deleted #=> ParanoiacParent #it works!
+```
 
 ## Caveats
 
