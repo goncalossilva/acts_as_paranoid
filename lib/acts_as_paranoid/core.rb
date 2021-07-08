@@ -29,6 +29,10 @@ module ActsAsParanoid
         end
       end
 
+      def active_on_unscoped
+        self.unscoped.where(paranoid_default_scope_sql)
+      end
+
       def delete_all!(conditions = nil)
         without_paranoid_default_scope.delete_all!(conditions)
       end

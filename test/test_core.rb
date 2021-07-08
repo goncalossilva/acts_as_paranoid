@@ -7,6 +7,7 @@ class ParanoidTest < ParanoidBaseTest
     assert_raise(NoMethodError) { NotParanoid.first.destroy! }
     assert_raise(NoMethodError) { NotParanoid.with_deleted }
     assert_raise(NoMethodError) { NotParanoid.only_deleted }    
+    assert_raise(NoMethodError) { NotParanoid.active_on_unscoped }
 
     assert ParanoidTime.paranoid?
   end
@@ -38,6 +39,9 @@ class ParanoidTest < ParanoidBaseTest
     assert_equal 3, ParanoidTime.with_deleted.count
     assert_equal 3, ParanoidBoolean.with_deleted.count
     assert_equal 1, ParanoidString.with_deleted.count
+    assert_equal 2, ParanoidTime.active_on_unscoped.count
+    assert_equal 1, ParanoidBoolean.active_on_unscoped.count
+    assert_equal 0, ParanoidString.active_on_unscoped.count
   end
 
   def test_real_removal
@@ -53,6 +57,9 @@ class ParanoidTest < ParanoidBaseTest
     assert_equal 0, ParanoidTime.only_deleted.count
     assert_equal 0, ParanoidBoolean.only_deleted.count
     assert_equal 0, ParanoidString.only_deleted.count
+    assert_equal 2, ParanoidTime.active_on_unscoped.count
+    assert_equal 1, ParanoidBoolean.active_on_unscoped.count
+    assert_equal 0, ParanoidString.active_on_unscoped.count
 
     ParanoidTime.first.destroy
     ParanoidTime.only_deleted.first.destroy
@@ -384,4 +391,35 @@ class ParanoidTest < ParanoidBaseTest
     2.times { ps.destroy }
     assert_equal 0, ParanoidString.with_deleted.where(:id => ps).count
   end
+
+  def test_active_on_unscoped
+    assert_equal 3, ParanoidTime.count
+    assert_equal 3, ParanoidBoolean.count
+    assert_equal 1, ParanoidString.count
+
+    ParanoidTime.send(:scope, :excluded, ->{ ParanoidTime.where('name != ?','paranoid') })
+    ParanoidBoolean.send(:scope, :excluded, ->{ ParanoidBoolean.where('name != ?','paranoid') })
+    ParanoidString.send(:scope, :excluded, ->{ ParanoidString.where('name != ?','strings can be paranoid') })
+
+    assert_equal 2, ParanoidTime.excluded.count
+    assert_equal 2, ParanoidBoolean.excluded.count
+    assert_equal 0, ParanoidString.excluded.count
+
+    ParanoidTime.where(:name => 'really paranoid').first.destroy
+    ParanoidBoolean.where(:name => 'paranoid').first.destroy
+    ParanoidString.where(:name => 'strings can be paranoid').first.destroy
+
+    assert_equal 1, ParanoidTime.excluded.count
+    assert_equal 3, ParanoidTime.excluded.unscoped.count
+    assert_equal 2, ParanoidTime.excluded.active_on_unscoped.count
+
+    assert_equal 2, ParanoidBoolean.excluded.count
+    assert_equal 3, ParanoidBoolean.excluded.unscoped.count
+    assert_equal 2, ParanoidBoolean.excluded.active_on_unscoped.count
+
+    assert_equal 0, ParanoidString.excluded.count
+    assert_equal 1, ParanoidString.excluded.unscoped.count
+    assert_equal 0, ParanoidString.excluded.active_on_unscoped.count
+  end
+
 end
