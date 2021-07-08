@@ -1,0 +1,9 @@
+class AddActsAsParanoidTo<%= model %> < ActiveRecord::Migration
+  def up
+    add_column :<%= model.tableize %>, :<%= column %>, :<%= column_type %>
+  end
+  
+  def down
+    remove_column :<%= model.tableize %>, :<%= column %>
+  end
+end
